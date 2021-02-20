@@ -7,33 +7,6 @@
 
 import SwiftUI
 
-// Extensions for colors
-extension Color {
-    
-    static let background = Color(UIColor(named: "background")!)
-    static let colorui = Color(UIColor(named: "colorui")!)
-    static let darkBlue = Color(UIColor(named: "bgdarkblue")!)
-    static let cleanBlue = Color(UIColor(named: "bgcleanblue")!)
-}
-
-extension View {
-    func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
-        clipShape( RoundedCorner(radius: radius, corners: corners) )
-    }
-}
-
-struct RoundedCorner: Shape {
-
-    var radius: CGFloat = .infinity
-    var corners: UIRectCorner = .allCorners
-
-    func path(in rect: CGRect) -> Path {
-        let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
-        return Path(path.cgPath)
-    }
-}
-
-
 struct ContentView: View {
     @ObservedObject var tamagotchi: Tamagotchi
     
@@ -43,10 +16,10 @@ struct ContentView: View {
     var tamagotchiBarometer: Data = Data()
     
     init() {
-        self.tamagotchi = Tamagotchi(name: "Zezin", gender: .male, age: 1, stomachMeter: 4, socialMeter: 2, imageName: "mametchi")
+        self.tamagotchi = Tamagotchi(name: "Zezin", gender: .male, age: 1, stomachMeter: 4, socialMeter: 2, happyMeter: 3, imageName: "mametchi")
         
         guard let _ = try? JSONDecoder().decode(TamagotchiBarometer.self, from: tamagotchiBarometer) else {
-            storeBarometer(with: TamagotchiBarometer(age: self.tamagotchi.age, stomachMeter: self.tamagotchi.stomachMeter, socialMeter: self.tamagotchi.socialMeter))
+            storeBarometer(with: TamagotchiBarometer(age: self.tamagotchi.age, stomachMeter: self.tamagotchi.stomachMeter, socialMeter: self.tamagotchi.socialMeter, happyMeter: self.tamagotchi.happyMeter))
 
             return
         }
@@ -54,7 +27,7 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            (LinearGradient(gradient: Gradient(colors: [.darkBlue, .cleanBlue, .darkBlue]), startPoint: .topLeading, endPoint: .bottomTrailing))
+            (LinearGradient(gradient: Gradient(colors: [.bgTop, .bgBottom]), startPoint: .topLeading, endPoint: .bottomTrailing))
                             .edgesIgnoringSafeArea(.all)
         VStack {
             Text("TAMAGOTCHI")
@@ -79,7 +52,7 @@ struct ContentView: View {
                             // change color between male and female
                                 Text("\(tamagotchi.gender.rawValue)").foregroundColor(tamagotchi.gender == .male ? .blue : .pink).shadow(radius: 10).font(.title)
                             }
-                            Text("\(tamagotchi.age) ano")
+                            Text("\(tamagotchi.checkAge())")
                         }
                     
                     }
@@ -92,47 +65,62 @@ struct ContentView: View {
             ZStack {
                 VStack {
                    
-                        HStack {
-                            Text("Social")
-                            Spacer()
-                            HStack {
-                                ForEach(0..<tamagotchi.socialMeter, id: \.self) {_ in
-                                    Image(systemName: "heart.fill")
-                                        .foregroundColor(.pink)
-                                }
-                                ForEach(0..<BAROMETER_MAX - tamagotchi.socialMeter, id: \.self) {_ in
-                                    Image(systemName: "heart")
-                                        .foregroundColor(.pink)
-                                }
-                            }
-                        }
-                        .padding(.horizontal, 60)
-                        .padding(.vertical, 5)
-                    
-                    
-                    
                     // healthy part
-                  
+                    
+                    HStack {
+                        Text("Felicidade")
+                        Spacer()
                         HStack {
-                            Text("Saúde")
-                            Spacer()
-                            HStack {
-                                ForEach(0..<tamagotchi.stomachMeter, id: \.self) {_ in
-                                    Image(systemName: "heart.fill")
-                                        .foregroundColor(.pink)
-                                }
-                                ForEach(0..<BAROMETER_MAX - tamagotchi.stomachMeter, id: \.self) {_ in
-                                    Image(systemName: "heart")
-                                        .foregroundColor(.pink)
-                                }
+                            ForEach(0..<tamagotchi.happyMeter, id: \.self) {_ in
+                                Image(systemName: "circle.fill")
+                                    .foregroundColor(.yellow)
+                            }
+                            ForEach(0..<BAROMETER_MAX - tamagotchi.happyMeter, id: \.self) {_ in
+                                Image(systemName: "circle")
+                                    .foregroundColor(.yellow)
                             }
                         }
-                        .padding(.horizontal, 60)
-                        .padding(.vertical, 5)
+                    }
+                    .padding(.horizontal, 40)
+                    .padding(.vertical, 5)
+                  
+                    HStack {
+                        Text("Saúde")
+                        Spacer()
+                        HStack {
+                            ForEach(0..<tamagotchi.stomachMeter, id: \.self) {_ in
+                                Image(systemName: "heart.fill")
+                                    .foregroundColor(.pink)
+                            }
+                            ForEach(0..<BAROMETER_MAX - tamagotchi.stomachMeter, id: \.self) {_ in
+                                Image(systemName: "heart")
+                                    .foregroundColor(.pink)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 40)
+                    .padding(.vertical, 5)
+                
+                    HStack {
+                        Text("Social")
+                        Spacer()
+                        HStack {
+                            ForEach(0..<tamagotchi.socialMeter, id: \.self) {_ in
+                                Image(systemName: "triangle.fill")
+                                    .foregroundColor(.orange)
+                            }
+                            ForEach(0..<BAROMETER_MAX - tamagotchi.socialMeter, id: \.self) {_ in
+                                Image(systemName: "triangle")
+                                    .foregroundColor(.orange)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 40)
+                    .padding(.vertical, 5)
                     
                 }
                 .padding(.horizontal)
-                .frame(width: 360, height: 60, alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
+                .frame(width: 360, height: 85, alignment: .center)
             }
             .padding(.vertical)
             .background(Color.white)
@@ -141,17 +129,14 @@ struct ContentView: View {
                     
                     // Button
                     HStack {
+                        
                         Button(action: {
-                            tamagotchi.fullSocialMeter()
+                            tamagotchi.fullHappyMeter()
                         }, label: {
-                            HStack {
-                                Image(systemName: "add")
-                                Text("Social")
-                                    .foregroundColor(.black)
-                            }
-                                                        
+                            Text("Felicidade")
+                                .foregroundColor(.black)
                         })
-                        .padding(.horizontal, 26)
+                        .padding(.horizontal, 18)
                         .padding(.vertical, 5)
                         .background(Color.white)
                         .cornerRadius(8.0)
@@ -162,20 +147,31 @@ struct ContentView: View {
                         Button(action: {
                             tamagotchi.fullStomachMeter()
                         }, label: {
-                            HStack {
-                                Image(systemName: "add")
-                                Text("Saúde")
-                                    .foregroundColor(.black)
-                            }
-                            
+                            Text("Saúde")
+                                .foregroundColor(.black)
                         })
                         .padding(.horizontal, 25)
                         .padding(.vertical, 5)
                         .background(Color.white)
                         .cornerRadius(8.0)
                         .shadow(radius: 10)
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            tamagotchi.fullSocialMeter()
+                        }, label: {
+                            Text("Social")
+                                .foregroundColor(.black)
+                        })
+                        .padding(.horizontal, 26)
+                        .padding(.vertical, 5)
+                        .background(Color.white)
+                        .cornerRadius(8.0)
+                        .shadow(radius: 10)
+                        
                     }
-                    .padding(.horizontal, 70)
+                    .padding(.horizontal, 20)
                     .padding(.vertical, 10)
             
     
